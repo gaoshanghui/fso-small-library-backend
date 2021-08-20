@@ -24,6 +24,8 @@ mongoose
     console.log('error connecting to MongoDB:', error.message);
   });
 
+// mongoose.set('debug', true);
+
 const pubsub = new PubSub();
 
 const typeDefs = gql`
@@ -105,7 +107,9 @@ const resolvers = {
 
       return Book.find({});
     },
-    allAuthors: () => Author.find({}),
+    allAuthors: () => {
+      return Author.find({}).populate('bookCount');
+    },
     me: (root, args, context) => {
       return context.currentUser;
     },
@@ -124,7 +128,10 @@ const resolvers = {
       return author.born;
     },
     bookCount: async (root) => {
-      const ownedBooks = await Book.find({ author: root });
+      // const ownedBooks = await Book.find({ author: root });
+      // return ownedBooks.length;
+      const ownedBooks = await Book.find({ author: { $in: [root._id] } });
+      // console.log(ownedBooks);
       return ownedBooks.length;
     },
   },
